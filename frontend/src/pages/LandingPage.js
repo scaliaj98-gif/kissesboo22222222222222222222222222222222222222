@@ -31,22 +31,22 @@ export default function LandingPage() {
   };
 
   const features = [
-    { icon: '🎬', title: 'Screen & Cam', desc: 'Record screen, webcam, or both at once with picture-in-picture', color: '#FF6B6B' },
-    { icon: '✂️', title: 'Smart Editor', desc: 'Trim, remove silences, add text & transitions in browser', color: '#4ECDC4' },
-    { icon: '🔗', title: 'Instant Share', desc: 'One click to generate secure share links', color: '#45B7D1' },
-    { icon: '🤖', title: 'AI Assistant', desc: 'Get intelligent help for editing and annotations', color: '#96CEB4' },
+    { icon: '🎬', title: 'Screen & Cam', desc: 'Record screen, webcam, or both at once with picture-in-picture', color: '#FF6B6B', emoji: '✨' },
+    { icon: '✂️', title: 'Smart Editor', desc: 'Trim, remove silences, add text & transitions in browser', color: '#4ECDC4', emoji: '💫' },
+    { icon: '🔗', title: 'Instant Share', desc: 'One click to generate secure share links', color: '#45B7D1', emoji: '🚀' },
+    { icon: '🤖', title: 'AI Assistant', desc: 'Get intelligent help for editing and annotations', color: '#96CEB4', emoji: '🎨' },
   ];
 
   const testimonials = [
-    { name: 'Sarah Chen', role: 'Product Manager', avatar: '👩‍💼', text: 'SnapRecord has completely transformed how our team communicates. No more long meetings!', stars: 5 },
-    { name: 'Marcus Johnson', role: 'Developer', avatar: '👨‍💻', text: 'The annotation tools are incredible. I use it daily for bug reports and code reviews.', stars: 5 },
-    { name: 'Priya Patel', role: 'Content Creator', avatar: '👩‍🎨', text: 'Love the AI assistant feature! It helped me edit my tutorials 3x faster.', stars: 5 },
+    { name: 'Sarah Chen', role: 'Product Manager', avatar: '👩‍💼', text: 'SnapRecord has completely transformed how our team communicates. No more long meetings!', stars: 5, gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+    { name: 'Marcus Johnson', role: 'Developer', avatar: '👨‍💻', text: 'The annotation tools are incredible. I use it daily for bug reports and code reviews.', stars: 5, gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+    { name: 'Priya Patel', role: 'Content Creator', avatar: '👩‍🎨', text: 'Love the AI assistant feature! It helped me edit my tutorials 3x faster.', stars: 5, gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
   ];
 
   const plans = [
-    { name: 'Free', price: '0', period: 'forever', color: '#667eea', features: ['5 min recordings', '25 screenshots/mo', 'Basic annotations', 'Share links'], popular: false },
-    { name: 'Pro', price: '12', period: 'month', color: '#f093fb', features: ['Unlimited recordings', 'Unlimited screenshots', 'AI Assistant', 'Custom watermarks', 'GIF export', 'Priority support'], popular: true },
-    { name: 'Team', price: '29', period: 'month', color: '#4facfe', features: ['Everything in Pro', 'Team workspace', 'Admin controls', 'Advanced analytics', 'SSO', 'Dedicated support'], popular: false },
+    { name: 'Free', price: '0', period: 'forever', color: '#667eea', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', features: ['5 min recordings', '25 screenshots/mo', 'Basic annotations', 'Share links'], popular: false, icon: '🌟' },
+    { name: 'Pro', price: '12', period: 'month', color: '#f093fb', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', features: ['Unlimited recordings', 'Unlimited screenshots', 'AI Assistant', 'Custom watermarks', 'GIF export', 'Priority support'], popular: true, icon: '🚀' },
+    { name: 'Team', price: '29', period: 'month', color: '#4facfe', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', features: ['Everything in Pro', 'Team workspace', 'Admin controls', 'Advanced analytics', 'SSO', 'Dedicated support'], popular: false, icon: '👥' },
   ];
 
   return (
