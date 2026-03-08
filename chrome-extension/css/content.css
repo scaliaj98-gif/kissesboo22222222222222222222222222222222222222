@@ -1,0 +1,20 @@
+/* SnapRecord Pro - Content Script Styles */
+
+#snaprecord-region-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  cursor: crosshair;
+}
+
+#snaprecord-selection {
+  position: absolute;
+  border: 2px solid #FF6B6B;
+  background: rgba(255, 107, 107, 0.08);
+  pointer-events: none;
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.3);
+}
+
+#snaprecord-indicator {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+}

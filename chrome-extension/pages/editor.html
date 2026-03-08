@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SnapRecord - Video Editor</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',sans-serif; background:#0F172A; color:white; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+    
+    /* TOPBAR */
+    .topbar {
+      height:56px; background:#1E293B; border-bottom:1px solid rgba(255,255,255,0.08);
+      display:flex; align-items:center; padding:0 20px; gap:12px; flex-shrink:0;
+    }
+    .topbar-title { font-size:15px; font-weight:800; margin-right:auto; }
+    .topbar-btn {
+      padding:8px 18px; border:none; border-radius:10px;
+      cursor:pointer; font-size:13px; font-weight:700; font-family:'Inter',sans-serif;
+      display:flex; align-items:center; gap:6px; transition:all 0.2s;
+    }
+    .btn-secondary { background:rgba(255,255,255,0.08); color:white; border:1px solid rgba(255,255,255,0.1); }
+    .btn-primary { background:linear-gradient(135deg,#FF6B6B,#FF8E53); color:white; box-shadow:0 4px 12px rgba(255,107,107,0.4); }
+    .btn-danger { background:rgba(239,68,68,0.2); color:#EF4444; border:1px solid rgba(239,68,68,0.3); }
+
+    /* MAIN LAYOUT */
+    .main {
+      flex:1; display:flex; overflow:hidden;
+    }
+
+    /* SIDEBAR */
+    .edit-sidebar {
+      width:220px; background:#1E293B; border-right:1px solid rgba(255,255,255,0.06);
+      display:flex; flex-direction:column; overflow-y:auto; flex-shrink:0;
+    }
+    .sidebar-section {
+      padding:14px 14px 8px;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+    }
+    .sidebar-section-title {
+      font-size:11px; font-weight:700; color:rgba(255,255,255,0.4);
+      text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;
+    }
+    .sidebar-btn {
+      width:100%; padding:9px 12px; border:none; background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:10px; cursor:pointer; color:rgba(255,255,255,0.7);
+      display:flex; align-items:center; gap:8px;
+      font-size:13px; font-weight:600; margin-bottom:6px;
+      transition:all 0.15s; font-family:'Inter',sans-serif; text-align:left;
+    }
+    .sidebar-btn:hover { background:rgba(255,255,255,0.08); color:white; border-color:rgba(255,255,255,0.15); }
+    .sidebar-btn.active { background:rgba(255,107,107,0.15); border-color:rgba(255,107,107,0.4); color:#FF6B6B; }
+    .sidebar-btn .btn-icon { font-size:18px; }
+
+    /* VIDEO AREA */
+    .video-area {
+      flex:1; display:flex; flex-direction:column; overflow:hidden;
+    }
+    .video-container {
+      flex:1; display:flex; align-items:center; justify-content:center;
+      background:#0B1120; padding:20px; overflow:hidden;
+    }
+    .video-wrapper {
+      position:relative; background:#000; border-radius:12px; overflow:hidden;
+      box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    }
+    #main-video { display:block; max-width:100%; max-height:calc(100vh - 300px); }
+    .webcam-pip {
+      position:absolute; bottom:12px; right:12px;
+      width:120px; height:90px; background:#000;
+      border-radius:10px; border:2px solid rgba(255,255,255,0.2);
+      overflow:hidden; cursor:move;
+    }
+    .text-overlay {
+      position:absolute; cursor:move; user-select:none;
+      background:rgba(0,0,0,0.5); padding:4px 8px; border-radius:4px;
+      border:1px dashed rgba(255,255,255,0.3); font-size:14px; color:white;
+    }
+
+    /* TIMELINE */
+    .timeline-area {
+      background:#1E293B; border-top:1px solid rgba(255,255,255,0.08);
+      padding:12px 20px; flex-shrink:0;
+    }
+    .timeline-controls {
+      display:flex; align-items:center; gap:12px; margin-bottom:10px;
+    }
+    .play-btn {
+      width:40px; height:40px; background:linear-gradient(135deg,#FF6B6B,#FF8E53);
+      border:none; border-radius:50%; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      color:white; font-size:18px; box-shadow:0 4px 12px rgba(255,107,107,0.4);
+    }
+    .time-display { font-size:14px; font-weight:700; color:white; }
+    .timeline-tools { margin-left:auto; display:flex; gap:6px; }
+    .tl-btn {
+      padding:5px 12px; border:none; background:rgba(255,255,255,0.08);
+      border-radius:8px; cursor:pointer; color:white; font-size:12px;
+      font-family:'Inter',sans-serif; font-weight:600; transition:all 0.15s;
+    }
+    .tl-btn:hover { background:rgba(255,255,255,0.15); }
+    .tl-btn.danger { background:rgba(239,68,68,0.2); color:#EF4444; }
+    
+    /* TIMELINE TRACK */
+    .timeline-track-container { position:relative; height:60px; }
+    .timeline-track {
+      width:100%; height:40px; background:rgba(255,255,255,0.04);
+      border-radius:8px; position:relative; overflow:hidden;
+      border:1px solid rgba(255,255,255,0.08); cursor:pointer;
+    }
+    .waveform { width:100%; height:100%; opacity:0.7; }
+    .trim-handle {
+      position:absolute; top:0; bottom:0; width:4px;
+      background:#FF6B6B; cursor:col-resize; z-index:10;
+    }
+    .trim-region {
+      position:absolute; top:0; bottom:0;
+      background:rgba(255,107,107,0.1);
+      border:1px solid rgba(255,107,107,0.3);
+    }
+    .playhead {
+      position:absolute; top:-5px; bottom:-5px; width:2px;
+      background:#FF6B6B; z-index:20; pointer-events:none;
+    }
+    .playhead::before {
+      content:''; position:absolute; top:-1px; left:-5px;
+      border:5px solid transparent; border-top-color:#FF6B6B; width:0; height:0;
+    }
+    .silence-marker {
+      position:absolute; top:0; bottom:0;
+      background:rgba(239,68,68,0.3); border:1px solid rgba(239,68,68,0.5);
+    }
+    .timeline-time {
+      display:flex; justify-content:space-between;
+      font-size:10px; color:rgba(255,255,255,0.3); margin-top:4px;
+    }
+
+    /* RIGHT PANEL */
+    .right-panel {
+      width:260px; background:#1E293B; border-left:1px solid rgba(255,255,255,0.06);
+      display:flex; flex-direction:column; overflow-y:auto; flex-shrink:0;
+      padding:16px;
+    }
+    .panel-title { font-size:13px; font-weight:700; margin-bottom:12px; color:white; }
+    .form-group { margin-bottom:14px; }
+    .form-label { font-size:11px; font-weight:700; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:5px; }
+    .form-input {
+      width:100%; padding:8px 12px;
+      background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+      border-radius:8px; color:white; font-size:13px; outline:none; font-family:'Inter',sans-serif;
+    }
+    .form-input:focus { border-color:rgba(255,107,107,0.5); }
+    .form-select {
+      width:100%; padding:8px 12px; background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.1); border-radius:8px;
+      color:white; font-size:13px; outline:none; cursor:pointer;
+    }
+    .toggle-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .toggle-label { font-size:13px; color:rgba(255,255,255,0.7); }
+    .toggle {
+      width:40px; height:22px; background:rgba(255,255,255,0.2);
+      border-radius:100px; position:relative; cursor:pointer; transition:all 0.2s;
+    }
+    .toggle.on { background:#FF6B6B; }
+    .toggle::after {
+      content:''; position:absolute;
+      width:16px; height:16px; background:white;
+      border-radius:50%; top:3px; left:3px; transition:all 0.2s;
+    }
+    .toggle.on::after { left:21px; }
+    .text-layer-item {
+      display:flex; align-items:center; gap:8px; padding:8px;
+      background:rgba(255,255,255,0.04); border-radius:8px; margin-bottom:6px;
+      border:1px solid rgba(255,255,255,0.06);
+    }
+    .text-layer-content { flex:1; overflow:hidden; }
+    .text-layer-text { font-size:12px; color:white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .text-layer-time { font-size:10px; color:rgba(255,255,255,0.4); }
+    .text-layer-delete {
+      width:20px; height:20px; background:rgba(239,68,68,0.2); color:#EF4444;
+      border:none; border-radius:5px; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center;
+    }
+
+    /* SILENCE PANEL */
+    .silence-item {
+      display:flex; align-items:center; gap:8px; padding:8px;
+      background:rgba(239,68,68,0.06); border-radius:8px; margin-bottom:6px;
+      border:1px solid rgba(239,68,68,0.15);
+    }
+    .silence-time { font-size:12px; color:#EF4444; font-weight:600; }
+    .silence-label { font-size:11px; color:rgba(255,255,255,0.4); flex:1; }
+    .silence-delete {
+      background:none; border:none; color:rgba(239,68,68,0.6); cursor:pointer; font-size:14px;
+    }
+
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:4px; }
+  </style>
+</head>
+<body>
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <span style="font-size:22px;">🎬</span>
+    <div class="topbar-title">SnapRecord Video Editor</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.4);" id="video-info">No video loaded</div>
+    <button class="topbar-btn btn-secondary" id="discard-btn">🗑️ Discard</button>
+    <button class="topbar-btn btn-danger" id="trim-apply-btn">✂️ Apply Trim</button>
+    <button class="topbar-btn btn-primary" id="export-btn">🚀 Export & Share</button>
+  </div>
+
+  <div class="main">
+    <!-- EDIT SIDEBAR -->
+    <div class="edit-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">✂️ Edit</div>
+        <button class="sidebar-btn active" data-panel="trim">
+          <span class="btn-icon">✂️</span> Trim & Cut
+        </button>
+        <button class="sidebar-btn" data-panel="silence">
+          <span class="btn-icon">🔇</span> Remove Silence
+        </button>
+        <button class="sidebar-btn" data-panel="text">
+          <span class="btn-icon">📝</span> Add Text
+        </button>
+        <button class="sidebar-btn" data-panel="transitions">
+          <span class="btn-icon">➡️</span> Transitions
+        </button>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">📹 Video</div>
+        <button class="sidebar-btn" data-panel="playback">
+          <span class="btn-icon">⏱️</span> Playback Speed
+        </button>
+        <button class="sidebar-btn" data-panel="webcam">
+          <span class="btn-icon">📸</span> Webcam PiP
+        </button>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">🔗 Share</div>
+        <button class="sidebar-btn" data-panel="share">
+          <span class="btn-icon">🔗</span> Upload & Share
+        </button>
+        <button class="sidebar-btn" data-panel="download">
+          <span class="btn-icon">⬇️</span> Download
+        </button>
+      </div>
+    </div>
+
+    <!-- VIDEO AREA -->
+    <div class="video-area">
+      <div class="video-container">
+        <div class="video-wrapper">
+          <video id="main-video" controls>
+            <source src="" type="video/webm">
+            Your browser does not support video.
+          </video>
+          <div id="text-overlays"></div>
+        </div>
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="timeline-area">
+        <div class="timeline-controls">
+          <button class="play-btn" id="play-btn">▶</button>
+          <span class="time-display" id="time-display">0:00 / 0:00</span>
+          <div class="timeline-tools">
+            <button class="tl-btn" id="set-in-btn">⩾ In Point</button>
+            <button class="tl-btn" id="set-out-btn">Out Point ⩽</button>
+            <button class="tl-btn danger" id="cut-silence-btn">🔇 Remove Silences</button>
+          </div>
+        </div>
+        <div class="timeline-track-container">
+          <div class="timeline-track" id="timeline-track">
+            <canvas class="waveform" id="waveform-canvas"></canvas>
+            <div class="trim-region" id="trim-region"></div>
+            <div class="trim-handle" id="trim-in" style="left:0%"></div>
+            <div class="trim-handle" id="trim-out" style="right:0%"></div>
+            <div class="playhead" id="playhead"></div>
+          </div>
+        </div>
+        <div class="timeline-time">
+          <span>0:00</span>
+          <span id="timeline-mid"></span>
+          <span id="timeline-end">0:00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel" id="right-panel">
+      <!-- Dynamic panel content will be injected here -->
+      <div id="panel-trim" class="panel-content">
+        <div class="panel-title">✂️ Trim & Cut</div>
+        <div class="form-group">
+          <div class="form-label">In Point</div>
+          <input class="form-input" id="in-point" type="text" placeholder="0:00" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Out Point</div>
+          <input class="form-input" id="out-point" type="text" placeholder="0:30" />
+        </div>
+        <button id="apply-trim-btn" style="width:100%;padding:10px;background:linear-gradient(135deg,#FF6B6B,#FF8E53);border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;font-size:13px;">✂️ Apply Trim</button>
+      </div>
+
+      <div id="panel-silence" class="panel-content" style="display:none;">
+        <div class="panel-title">🔇 Remove Silences</div>
+        <div class="form-group">
+          <div class="form-label">Silence Threshold (dB)</div>
+          <input type="range" id="silence-threshold" min="-80" max="-20" value="-40" style="width:100%;accent-color:#FF6B6B;margin-bottom:4px;">
+          <div style="font-size:12px;color:rgba(255,255,255,0.4);text-align:center;" id="threshold-val">-40 dB</div>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Min Silence Duration</div>
+          <input class="form-input" id="min-silence" type="number" value="0.5" min="0.1" max="5" step="0.1" />
+        </div>
+        <button id="detect-silences-btn" style="width:100%;padding:10px;background:linear-gradient(135deg,#4ECDC4,#45B7D1);border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;font-size:13px;margin-bottom:8px;">🔍 Detect Silences</button>
+        <div id="silence-list">
+          <div style="text-align:center;color:rgba(255,255,255,0.3);font-size:13px;padding:20px 0;">Click Detect to find silences</div>
+        </div>
+      </div>
+
+      <div id="panel-text" class="panel-content" style="display:none;">
+        <div class="panel-title">📝 Add Text Overlay</div>
+        <div class="form-group">
+          <div class="form-label">Text Content</div>
+          <input class="form-input" id="text-content" type="text" placeholder="Enter text..." />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Start Time (seconds)</div>
+          <input class="form-input" id="text-start" type="number" value="0" min="0" step="0.1" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Duration (seconds)</div>
+          <input class="form-input" id="text-duration" type="number" value="3" min="0.5" step="0.5" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Position</div>
+          <select class="form-select" id="text-position">
+            <option value="top-left">Top Left</option>
+            <option value="top-center" selected>Top Center</option>
+            <option value="bottom-center">Bottom Center</option>
+            <option value="center">Center</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Font Size</div>
+          <input type="range" id="text-size" min="12" max="72" value="24" style="width:100%;accent-color:#FF6B6B;">
+        </div>
+        <button id="add-text-btn" style="width:100%;padding:10px;background:linear-gradient(135deg,#6366F1,#8B5CF6);border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;font-size:13px;">➕ Add Text Layer</button>
+        <div id="text-layers-list" style="margin-top:12px;"></div>
+      </div>
+
+      <div id="panel-transitions" class="panel-content" style="display:none;">
+        <div class="panel-title">➡️ Transitions</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          {['Fade', 'Slide', 'Zoom', 'Wipe', 'Dissolve', 'None'].map ? '' : ''}
+          <div id="transitions-grid"></div>
+        </div>
+      </div>
+
+      <div id="panel-share" class="panel-content" style="display:none;">
+        <div class="panel-title">🔗 Upload & Share</div>
+        <div class="form-group">
+          <div class="form-label">Title</div>
+          <input class="form-input" id="upload-title" type="text" placeholder="My Recording" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Privacy</div>
+          <select class="form-select" id="upload-privacy">
+            <option value="private">🔒 Private</option>
+            <option value="public">🌎 Public</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Expiration Date</div>
+          <input class="form-input" id="upload-expiry" type="date" />
+        </div>
+        <button id="upload-share-btn" style="width:100%;padding:10px;background:linear-gradient(135deg,#FF6B6B,#FF8E53);border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;font-size:13px;box-shadow:0 4px 12px rgba(255,107,107,0.4);">🚀 Upload & Get Link</button>
+        <div id="upload-result" style="margin-top:12px;display:none;">
+          <div style="padding:12px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:10px;">
+            <div style="font-size:12px;color:#22C55E;font-weight:700;margin-bottom:6px;">✅ Uploaded!</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.6);" id="share-url"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/editor.js"></script>
+</body>
+</html>

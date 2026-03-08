@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SnapRecord - AI Assistant</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',sans-serif; background:#0F172A; color:white; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+    
+    .header {
+      padding:14px 16px; background:#1E293B; border-bottom:1px solid rgba(255,255,255,0.08);
+      display:flex; align-items:center; gap:10px; flex-shrink:0;
+    }
+    .header-icon { width:32px; height:32px; background:linear-gradient(135deg,#6366F1,#8B5CF6); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .header-title { font-size:15px; font-weight:800; flex:1; }
+    .header-subtitle { font-size:11px; color:rgba(255,255,255,0.4); }
+    .new-chat-btn {
+      padding:6px 12px; background:rgba(99,102,241,0.2);
+      border:1px solid rgba(99,102,241,0.3); border-radius:8px;
+      color:#818CF8; cursor:pointer; font-size:12px; font-weight:600; font-family:'Inter',sans-serif;
+    }
+    
+    .messages { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; }
+    .messages::-webkit-scrollbar { width:4px; }
+    .messages::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:4px; }
+    
+    .message { display:flex; gap:8px; max-width:90%; animation:fadeIn 0.3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .message.user { flex-direction:row-reverse; margin-left:auto; }
+    .msg-avatar { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+    .msg-avatar.ai { background:linear-gradient(135deg,#6366F1,#8B5CF6); }
+    .msg-avatar.user { background:linear-gradient(135deg,#FF6B6B,#FF8E53); }
+    .msg-bubble {
+      padding:10px 14px; border-radius:12px; font-size:13px; line-height:1.6;
+    }
+    .message.ai .msg-bubble { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:4px 12px 12px 12px; }
+    .message.user .msg-bubble { background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(139,92,246,0.3)); border:1px solid rgba(99,102,241,0.3); border-radius:12px 4px 12px 12px; }
+    
+    .quick-prompts {
+      padding:12px 16px; flex-shrink:0; border-top:1px solid rgba(255,255,255,0.06);
+    }
+    .quick-label { font-size:11px; color:rgba(255,255,255,0.3); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+    .quick-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+    .quick-btn {
+      padding:7px 10px; background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.08); border-radius:8px;
+      color:rgba(255,255,255,0.6); cursor:pointer; font-size:11px; font-weight:500;
+      text-align:left; transition:all 0.15s; font-family:'Inter',sans-serif; line-height:1.3;
+    }
+    .quick-btn:hover { background:rgba(99,102,241,0.1); border-color:rgba(99,102,241,0.3); color:white; }
+    
+    .input-area {
+      padding:12px 16px; background:#1E293B; border-top:1px solid rgba(255,255,255,0.08);
+      flex-shrink:0;
+    }
+    .input-row { display:flex; gap:8px; align-items:flex-end; }
+    .chat-input {
+      flex:1; padding:10px 14px; background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.1); border-radius:12px;
+      color:white; font-size:13px; outline:none; resize:none;
+      font-family:'Inter',sans-serif; min-height:40px; max-height:120px;
+      line-height:1.5;
+    }
+    .chat-input:focus { border-color:rgba(99,102,241,0.5); }
+    .chat-input::placeholder { color:rgba(255,255,255,0.3); }
+    .send-btn {
+      width:40px; height:40px; background:linear-gradient(135deg,#6366F1,#8B5CF6);
+      border:none; border-radius:12px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      color:white; font-size:18px; flex-shrink:0;
+      box-shadow:0 4px 12px rgba(99,102,241,0.4);
+    }
+    .send-btn:disabled { opacity:0.5; cursor:not-allowed; }
+    
+    .typing-indicator { display:flex; gap:4px; align-items:center; padding:4px 0; }
+    .typing-dot { width:6px; height:6px; background:rgba(255,255,255,0.4); border-radius:50%; animation:typingBounce 1.4s ease-in-out infinite; }
+    .typing-dot:nth-child(2) { animation-delay:0.2s; }
+    .typing-dot:nth-child(3) { animation-delay:0.4s; }
+    @keyframes typingBounce { 0%,80%,100%{transform:scale(0.8);opacity:0.5} 40%{transform:scale(1.2);opacity:1} }
+    
+    .setup-notice {
+      margin:12px; padding:12px; background:rgba(99,102,241,0.1);
+      border:1px solid rgba(99,102,241,0.2); border-radius:12px;
+    }
+    .setup-notice p { font-size:12px; color:rgba(255,255,255,0.6); line-height:1.5; margin-bottom:8px; }
+    .setup-btn {
+      padding:7px 14px; background:linear-gradient(135deg,#6366F1,#8B5CF6);
+      border:none; border-radius:8px; color:white; font-size:12px; font-weight:700;
+      cursor:pointer; font-family:'Inter',sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-icon">🤖</div>
+    <div>
+      <div class="header-title">AI Assistant</div>
+      <div class="header-subtitle">SnapRecord Pro</div>
+    </div>
+    <button class="new-chat-btn" id="new-chat-btn">➕ New Chat</button>
+  </div>
+
+  <div class="messages" id="messages">
+    <!-- Welcome message -->
+    <div class="message ai">
+      <div class="msg-avatar ai">🤖</div>
+      <div class="msg-bubble">
+        <strong>Hey! I'm your SnapRecord AI Assistant 🚀</strong><br><br>
+        I can help you with:
+        <ul style="margin-top:6px;padding-left:16px;">
+          <li>Recording tips & best practices</li>
+          <li>Video editing guidance</li>
+          <li>Screenshot annotation help</li>
+          <li>Sharing & privacy settings</li>
+          <li>Any feature questions</li>
+        </ul>
+        <br>What would you like help with today?
+      </div>
+    </div>
+
+    <div class="setup-notice" id="setup-notice">
+      <p>To enable AI responses, add your API key in Settings.</p>
+      <button class="setup-btn" id="open-settings">Open Settings ⚙️</button>
+    </div>
+  </div>
+
+  <div class="quick-prompts">
+    <div class="quick-label">⚡ Quick help</div>
+    <div class="quick-grid">
+      <button class="quick-btn" data-q="How do I trim my recording?">How to trim a video?</button>
+      <button class="quick-btn" data-q="How do I annotate a screenshot?">Annotate screenshot</button>
+      <button class="quick-btn" data-q="How do I remove silence from my recording?">Remove silences</button>
+      <button class="quick-btn" data-q="How do I share a recording securely?">Secure sharing</button>
+      <button class="quick-btn" data-q="How do I record my screen and webcam at the same time?">Screen + webcam</button>
+      <button class="quick-btn" data-q="How do I set privacy and expiration on my shared link?">Privacy settings</button>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-row">
+      <textarea class="chat-input" id="chat-input" placeholder="Ask anything about SnapRecord..." rows="1"></textarea>
+      <button class="send-btn" id="send-btn">↑</button>
+    </div>
+  </div>
+
+  <script src="../js/sidebar.js"></script>
+</body>
+</html>

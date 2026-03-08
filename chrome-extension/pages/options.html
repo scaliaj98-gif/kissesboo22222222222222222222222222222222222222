@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SnapRecord - Options</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',sans-serif; background:#F8FAFF; color:#0F172A; min-height:100vh; }
+    
+    .header {
+      background:linear-gradient(135deg,#0F172A,#1E293B); color:white;
+      padding:24px 40px; display:flex; align-items:center; gap:12px;
+    }
+    .header-icon { font-size:32px; }
+    .header-title { font-size:24px; font-weight:800; }
+    .header-subtitle { font-size:13px; color:rgba(255,255,255,0.5); margin-top:2px; }
+    
+    .container { max-width:800px; margin:40px auto; padding:0 24px; }
+    
+    .section {
+      background:white; border-radius:16px; margin-bottom:24px;
+      border:1px solid #E8ECEF; overflow:hidden;
+    }
+    .section-header {
+      padding:20px 24px; border-bottom:1px solid #F1F5F9;
+      display:flex; align-items:center; gap:10px;
+    }
+    .section-icon { font-size:22px; }
+    .section-title { font-size:16px; font-weight:700; }
+    .section-desc { font-size:13px; color:#64748B; margin-top:2px; }
+    .section-body { padding:20px 24px; }
+    
+    .form-row { display:grid; grid-template-columns:1fr 2fr; gap:16px; align-items:start; margin-bottom:20px; }
+    .form-row:last-child { margin-bottom:0; }
+    .form-label { font-size:14px; font-weight:600; color:#374151; padding-top:10px; }
+    .form-desc { font-size:12px; color:#94A3B8; margin-top:3px; }
+    .form-control {
+      padding:10px 14px; border:2px solid #E5E7EB;
+      border-radius:10px; font-size:14px; font-family:'Inter',sans-serif;
+      outline:none; transition:border-color 0.2s; width:100%;
+    }
+    .form-control:focus { border-color:#FF6B6B; }
+    .toggle-wrap { display:flex; align-items:center; gap:10px; padding-top:10px; }
+    .toggle-switch {
+      width:48px; height:26px; background:#E5E7EB; border-radius:100px;
+      position:relative; cursor:pointer; transition:all 0.2s;
+    }
+    .toggle-switch.on { background:#FF6B6B; }
+    .toggle-switch::after {
+      content:''; position:absolute;
+      width:20px; height:20px; background:white;
+      border-radius:50%; top:3px; left:3px; transition:all 0.2s;
+      box-shadow:0 2px 4px rgba(0,0,0,0.2);
+    }
+    .toggle-switch.on::after { left:25px; }
+    .toggle-label { font-size:14px; font-weight:500; color:#374151; }
+    
+    .save-btn {
+      background:linear-gradient(135deg,#FF6B6B,#FF8E53); color:white;
+      border:none; padding:14px 32px; border-radius:12px;
+      font-weight:700; font-size:15px; cursor:pointer;
+      font-family:'Inter',sans-serif; display:inline-flex; align-items:center; gap:8px;
+      box-shadow:0 4px 15px rgba(255,107,107,0.4);
+      transition:all 0.2s;
+    }
+    .save-btn:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(255,107,107,0.5); }
+    
+    .notice {
+      padding:12px 16px; background:rgba(99,102,241,0.06);
+      border:1px solid rgba(99,102,241,0.2); border-radius:10px;
+      font-size:13px; color:#4338CA; margin-bottom:16px; line-height:1.5;
+    }
+    .saved-toast {
+      position:fixed; bottom:24px; right:24px;
+      background:#0F172A; color:white; padding:12px 20px;
+      border-radius:12px; font-size:14px; font-weight:600;
+      display:none; animation:slideIn 0.3s ease;
+      box-shadow:0 8px 24px rgba(0,0,0,0.3);
+    }
+    @keyframes slideIn { from{transform:translateX(20px);opacity:0} to{transform:translateX(0);opacity:1} }
+    
+    code { background:#F1F5F9; padding:2px 6px; border-radius:4px; font-size:12px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-icon">🎬</div>
+    <div>
+      <div class="header-title">SnapRecord Pro Settings</div>
+      <div class="header-subtitle">Configure your recording and AI preferences</div>
+    </div>
+  </div>
+
+  <div class="container">
+    
+    <!-- Recording Settings -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🎬</span>
+        <div>
+          <div class="section-title">Recording Settings</div>
+          <div class="section-desc">Configure video quality, audio, and recording defaults</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="form-row">
+          <div>
+            <div class="form-label">Video Quality</div>
+            <div class="form-desc">Resolution for recordings</div>
+          </div>
+          <select class="form-control" id="video-quality">
+            <option value="720p">HD 720p</option>
+            <option value="1080p" selected>Full HD 1080p</option>
+            <option value="1440p">2K 1440p</option>
+            <option value="4k">4K (requires fast CPU)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div>
+            <div class="form-label">Frame Rate</div>
+            <div class="form-desc">Frames per second</div>
+          </div>
+          <select class="form-control" id="fps">
+            <option value="24">24 FPS (cinematic)</option>
+            <option value="30" selected>30 FPS (standard)</option>
+            <option value="60">60 FPS (smooth)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div>
+            <div class="form-label">Output Format</div>
+            <div class="form-desc">Video file format</div>
+          </div>
+          <select class="form-control" id="format">
+            <option value="webm" selected>WebM (recommended)</option>
+            <option value="mp4">MP4 (wider compatibility)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div>
+            <div class="form-label">Default Countdown</div>
+            <div class="form-desc">Seconds before recording starts</div>
+          </div>
+          <select class="form-control" id="countdown">
+            <option value="0">No countdown</option>
+            <option value="3" selected>3 seconds</option>
+            <option value="5">5 seconds</option>
+            <option value="10">10 seconds</option>
+            <option value="20">20 seconds</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div>
+            <div class="form-label">Microphone</div>
+            <div class="form-desc">Include mic by default</div>
+          </div>
+          <div class="toggle-wrap">
+            <div class="toggle-switch on" id="toggle-mic"></div>
+            <span class="toggle-label" id="toggle-mic-label">On</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <div class="form-label">System Audio</div>
+            <div class="form-desc">Capture desktop sound</div>
+          </div>
+          <div class="toggle-wrap">
+            <div class="toggle-switch on" id="toggle-sys"></div>
+            <span class="toggle-label" id="toggle-sys-label">On</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard Connection -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🔗</span>
+        <div>
+          <div class="section-title">Dashboard Connection</div>
+          <div class="section-desc">Connect to your SnapRecord cloud dashboard</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="notice">
+          Enter your SnapRecord dashboard URL to sync recordings to the cloud and access them from any device.
+        </div>
+        <div class="form-row">
+          <div>
+            <div class="form-label">Dashboard URL</div>
+            <div class="form-desc">Your SnapRecord app URL</div>
+          </div>
+          <input type="url" class="form-control" id="api-url" placeholder="https://your-app.preview.emergentagent.com" />
+        </div>
+        <div class="form-row">
+          <div>
+            <div class="form-label">Default Privacy</div>
+            <div class="form-desc">Default sharing setting</div>
+          </div>
+          <select class="form-control" id="default-privacy">
+            <option value="private" selected>🔒 Private (only you)</option>
+            <option value="public">🌎 Public (anyone with link)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Settings -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🤖</span>
+        <div>
+          <div class="section-title">AI Assistant Settings</div>
+          <div class="section-desc">Configure AI provider for smarter responses</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="notice">
+          The AI Assistant works without an API key using built-in knowledge. Add a key for even smarter, personalized responses.
+        </div>
+        <div class="form-row">
+          <div>
+            <div class="form-label">AI Provider</div>
+            <div class="form-desc">Select your preferred AI</div>
+          </div>
+          <select class="form-control" id="ai-provider" onchange="handleProviderChange()">
+            <option value="none">Built-in (no API key needed)</option>
+            <option value="openai">OpenAI (GPT-4o-mini)</option>
+            <option value="gemini">Google Gemini</option>
+          </select>
+        </div>
+        <div class="form-row" id="api-key-row" style="display:none;">
+          <div>
+            <div class="form-label">API Key</div>
+            <div class="form-desc">Stored securely locally</div>
+          </div>
+          <input type="password" class="form-control" id="ai-api-key" placeholder="Enter your API key..." />
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div style="text-align:right; margin-bottom:40px;">
+      <button class="save-btn" id="save-btn">💾 Save Settings</button>
+    </div>
+  </div>
+
+  <div class="saved-toast" id="saved-toast">✅ Settings saved!</div>
+
+  <script src="../js/options.js"></script>
+</body>
+</html>
