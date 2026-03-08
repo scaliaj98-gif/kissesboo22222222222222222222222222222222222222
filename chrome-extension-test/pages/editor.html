@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SnapRecord Pro - Video Editor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090E1A; --surface: #111827; --surface2: #1A2236; --surface3: #0D1524;
+      --border: rgba(255,255,255,0.08); --accent: #FF6B6B; --accent2: #FF8E53;
+      --purple: #8B5CF6; --teal: #14B8A6; --text: #F1F5F9; --muted: rgba(241,245,249,0.45);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg); color: var(--text);
+      display: flex; flex-direction: column;
+    }
+
+    /* TOP BAR */
+    .topbar {
+      display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .tb-logo { font-size: 14px; font-weight: 800; color: var(--accent); }
+    .tb-title { font-size: 13px; font-weight: 600; color: var(--muted); flex: 1; }
+    .topbar input { background: transparent; border: none; outline: none; color: var(--text); font-family: inherit; font-size: 13px; font-weight: 600; }
+    .tb-btn {
+      padding: 7px 14px; border: none; border-radius: 8px; cursor: pointer;
+      font-family: inherit; font-size: 12px; font-weight: 700; transition: all 0.15s;
+    }
+    .tb-btn-sec { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .tb-btn-pri { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
+    .tb-btn-share { background: linear-gradient(135deg, var(--purple), var(--teal)); color: white; }
+    .tb-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    /* MAIN LAYOUT */
+    .editor-main {
+      flex: 1; display: flex; overflow: hidden;
+    }
+
+    /* LEFT SIDEBAR */
+    .sidebar-left {
+      width: 220px; background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;
+    }
+    .sidebar-section { padding: 12px; border-bottom: 1px solid var(--border); }
+    .ss-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+    .effect-btn {
+      width: 100%; padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 9px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600;
+      color: var(--text); text-align: left; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;
+      transition: all 0.15s;
+    }
+    .effect-btn:hover { border-color: rgba(255,107,107,0.3); background: rgba(255,107,107,0.07); }
+    .effect-btn.active { background: rgba(255,107,107,0.1); border-color: rgba(255,107,107,0.3); color: var(--accent); }
+    .setting-row { margin-bottom: 10px; }
+    .setting-label { font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .setting-label span { color: var(--text); }
+    input[type=range] { width: 100%; accent-color: var(--accent); }
+    .select-input {
+      width: 100%; padding: 6px 10px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: inherit; font-size: 11px; outline: none;
+    }
+    .text-overlay-area { display: none; }
+    .text-overlay-area.show { display: block; }
+    textarea.overlay-input {
+      width: 100%; padding: 8px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: inherit; font-size: 11px;
+      outline: none; resize: vertical; min-height: 60px;
+    }
+    textarea.overlay-input:focus { border-color: rgba(255,107,107,0.4); }
+
+    /* CENTER - VIDEO */
+    .video-center {
+      flex: 1; display: flex; flex-direction: column; overflow: hidden;
+    }
+    .video-container {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      background: #060B15; position: relative; overflow: hidden;
+    }
+    video#preview-video {
+      max-width: 100%; max-height: 100%;
+      border-radius: 6px; box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    }
+    .video-overlay {
+      position: absolute; pointer-events: none;
+      font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 800;
+      color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.8); display: none;
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+    }
+    .no-video-msg {
+      text-align: center; color: var(--muted);
+    }
+    .no-video-msg .nv-icon { font-size: 48px; margin-bottom: 12px; }
+    .no-video-msg p { font-size: 14px; margin-bottom: 12px; }
+    .upload-video-btn {
+      padding: 10px 24px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none; border-radius: 10px; color: white; cursor: pointer;
+      font-family: inherit; font-size: 13px; font-weight: 700;
+    }
+
+    /* PLAYBACK BAR */
+    .playback-bar {
+      padding: 10px 16px; background: var(--surface); border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .play-btn {
+      width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none; border-radius: 50%; cursor: pointer; color: white;
+      font-size: 14px; display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .play-btn:hover { transform: scale(1.1); }
+    .time-display { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+    .volume-slider { width: 70px; accent-color: var(--accent); }
+    .speed-select {
+      padding: 5px 8px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 7px; color: var(--text); font-family: inherit; font-size: 11px; outline: none;
+    }
+
+    /* TIMELINE */
+    .timeline-area {
+      height: 120px; background: var(--surface3); border-top: 1px solid var(--border);
+      flex-shrink: 0; position: relative; overflow: hidden;
+    }
+    .timeline-header {
+      display: flex; align-items: center; gap: 8px; padding: 6px 12px 0;
+    }
+    .timeline-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+    .tl-btn {
+      padding: 3px 10px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 10px;
+      font-weight: 700; color: var(--muted); transition: all 0.15s;
+    }
+    .tl-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+    .tl-btn.danger:hover { color: var(--accent); border-color: rgba(255,107,107,0.3); }
+    .timeline-tracks { padding: 6px 12px 6px; position: relative; height: 80px; }
+    .track-bg {
+      height: 28px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; position: relative; overflow: hidden; margin-bottom: 5px;
+      cursor: pointer;
+    }
+    .track-fill {
+      position: absolute; top: 0; left: 0; height: 100%;
+      border-radius: 5px;
+    }
+    .track-video .track-fill { background: linear-gradient(90deg, rgba(255,107,107,0.4), rgba(255,142,83,0.4)); }
+    .track-audio .track-fill { background: linear-gradient(90deg, rgba(139,92,246,0.4), rgba(20,184,166,0.4)); }
+    .trim-handle {
+      position: absolute; top: 0; width: 10px; height: 100%;
+      background: var(--accent); cursor: ew-resize; border-radius: 3px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .trim-handle-left { left: 0; }
+    .trim-handle-right { right: 0; }
+    .trim-handle::after { content: '⋮'; color: white; font-size: 12px; }
+    .playhead {
+      position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent);
+      pointer-events: none; z-index: 10;
+    }
+    .playhead::before {
+      content: '▼'; position: absolute; top: -2px; left: -6px;
+      color: var(--accent); font-size: 12px;
+    }
+    .waveform-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.6; }
+
+    /* RIGHT SIDEBAR */
+    .sidebar-right {
+      width: 200px; background: var(--surface); border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0;
+    }
+    .sidebar-right::-webkit-scrollbar { width: 3px; }
+    .sidebar-right::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+    .clip-list { padding: 12px; }
+    .clip-item {
+      padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 9px; margin-bottom: 6px; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .clip-item.active { border-color: rgba(255,107,107,0.3); background: rgba(255,107,107,0.07); }
+    .clip-thumb { width: 32px; height: 24px; background: #1A2236; border-radius: 4px; flex-shrink: 0; overflow: hidden; }
+    .clip-thumb video, .clip-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .clip-info { flex: 1; overflow: hidden; }
+    .clip-name { font-size: 11px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .clip-dur { font-size: 10px; color: var(--muted); }
+    .export-section { padding: 12px; border-top: 1px solid var(--border); margin-top: auto; }
+    .export-btn {
+      width: 100%; padding: 10px; border: none; border-radius: 10px; cursor: pointer;
+      font-family: inherit; font-size: 12px; font-weight: 800; display: flex; align-items: center;
+      justify-content: center; gap: 6px; margin-bottom: 6px; transition: all 0.15s;
+    }
+    .export-btn:hover { transform: translateY(-1px); opacity: 0.9; }
+    .export-download { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
+    .export-share { background: linear-gradient(135deg, var(--purple), var(--teal)); color: white; }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="tb-logo">🎬 SnapRecord</span>
+  <input id="video-title" value="Untitled Recording" class="tb-title">
+  <button class="tb-btn tb-btn-sec" id="btn-add-clip">+ Add Clip</button>
+  <button class="tb-btn tb-btn-sec" id="btn-silence">🔇 Remove Silence</button>
+  <button class="tb-btn tb-btn-sec" id="btn-add-text">T+ Text Overlay</button>
+  <button class="tb-btn tb-btn-pri" id="btn-export">⬇️ Export</button>
+  <button class="tb-btn tb-btn-share" id="btn-share-vid">🔗 Share</button>
+  <input type="file" id="video-file-input" accept="video/*" style="display:none;">
+</div>
+
+<!-- MAIN -->
+<div class="editor-main">
+
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar-left">
+    <div class="sidebar-section">
+      <div class="ss-label">Effects & Tools</div>
+      <button class="effect-btn" id="eff-trim">✂️ Trim Clip</button>
+      <button class="effect-btn" id="eff-crop">⬛ Crop Video</button>
+      <button class="effect-btn" id="eff-captions">💬 Auto Captions</button>
+      <button class="effect-btn" id="eff-zoom">🔍 Zoom Effect</button>
+      <button class="effect-btn" id="eff-blur-bg">🌫️ Blur Background</button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="ss-label">Video Settings</div>
+      <div class="setting-row">
+        <div class="setting-label">Brightness <span id="val-brightness">0</span></div>
+        <input type="range" id="ctrl-brightness" min="-100" max="100" value="0">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Contrast <span id="val-contrast">0</span></div>
+        <input type="range" id="ctrl-contrast" min="-100" max="100" value="0">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Saturation <span id="val-saturation">0</span></div>
+        <input type="range" id="ctrl-saturation" min="-100" max="100" value="0">
+      </div>
+    </div>
+
+    <div class="sidebar-section text-overlay-area" id="text-overlay-section">
+      <div class="ss-label">Text Overlay</div>
+      <textarea class="overlay-input" id="overlay-text" placeholder="Enter overlay text..."></textarea>
+      <div class="setting-row" style="margin-top:8px;">
+        <div class="setting-label">Font Size <span id="val-fontsize">24</span>px</div>
+        <input type="range" id="ctrl-fontsize" min="12" max="72" value="24">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Position</div>
+        <select class="select-input" id="overlay-pos">
+          <option value="center">Center</option>
+          <option value="top">Top</option>
+          <option value="bottom">Bottom</option>
+          <option value="top-left">Top Left</option>
+          <option value="top-right">Top Right</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Duration (sec) <span id="val-duration">3</span>s</div>
+        <input type="range" id="ctrl-overlay-duration" min="1" max="30" value="3">
+      </div>
+      <button class="effect-btn active" id="btn-apply-overlay">✅ Apply Overlay</button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="ss-label">Export Format</div>
+      <select class="select-input" id="export-format">
+        <option value="webm">WebM</option>
+        <option value="mp4">MP4 (Chrome)</option>
+        <option value="gif">GIF (5s preview)</option>
+      </select>
+      <div class="setting-row" style="margin-top:8px;">
+        <div class="setting-label">Quality <span id="val-quality">80</span>%</div>
+        <input type="range" id="ctrl-quality" min="10" max="100" value="80">
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="video-center">
+    <div class="video-container" id="video-container">
+      <div class="no-video-msg" id="no-video-msg">
+        <div class="nv-icon">🎬</div>
+        <p>No video loaded</p>
+        <button class="upload-video-btn" id="btn-upload-video">📂 Open Video</button>
+      </div>
+      <video id="preview-video" style="display:none;" playsinline></video>
+      <div class="video-overlay" id="video-overlay"></div>
+      <canvas id="effect-canvas" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
+    </div>
+
+    <!-- PLAYBACK -->
+    <div class="playback-bar">
+      <button class="play-btn" id="btn-play">▶</button>
+      <span class="time-display" id="time-display">0:00 / 0:00</span>
+      <input type="range" style="flex:1;accent-color:var(--accent);" id="seek-bar" min="0" max="100" value="0">
+      <span>🔊</span>
+      <input type="range" class="volume-slider" id="volume-bar" min="0" max="1" step="0.05" value="1">
+      <select class="speed-select" id="speed-select">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="1.5">1.5×</option>
+        <option value="2">2×</option>
+      </select>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="timeline-area">
+      <div class="timeline-header">
+        <span class="timeline-label">Timeline</span>
+        <button class="tl-btn" id="tl-split">✂️ Split</button>
+        <button class="tl-btn danger" id="tl-delete">🗑 Delete</button>
+        <button class="tl-btn" id="tl-transition">✨ Transition</button>
+        <div style="flex:1;"></div>
+        <span class="timeline-label" id="tl-time-label">0:00</span>
+      </div>
+      <div class="timeline-tracks">
+        <div class="track-bg track-video" id="track-video">
+          <canvas class="waveform-canvas" id="waveform-canvas"></canvas>
+          <div class="track-fill" id="video-fill" style="width:100%;"></div>
+          <div class="trim-handle trim-handle-left" id="trim-left"></div>
+          <div class="trim-handle trim-handle-right" id="trim-right"></div>
+          <div class="playhead" id="playhead" style="left:0%;"></div>
+        </div>
+        <div class="track-bg track-audio" id="track-audio">
+          <div class="track-fill" id="audio-fill" style="width:100%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <div class="sidebar-right">
+    <div class="sidebar-section" style="border-bottom:1px solid var(--border);padding:12px;">
+      <div class="ss-label">Clips</div>
+    </div>
+    <div class="clip-list" id="clip-list">
+      <!-- Clips added dynamically -->
+    </div>
+    <div class="export-section">
+      <div class="ss-label" style="margin-bottom:8px;">Export & Share</div>
+      <button class="export-btn export-download" id="export-download">⬇️ Download</button>
+      <button class="export-btn export-share" id="export-share">🔗 Share Link</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="../js/editor.js"></script>
+</body>
+</html>

@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SnapRecord Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090E1A;
+      --surface: #111827;
+      --surface2: #1A2236;
+      --border: rgba(255,255,255,0.08);
+      --accent: #FF6B6B;
+      --accent2: #FF8E53;
+      --purple: #8B5CF6;
+      --teal: #14B8A6;
+      --text: #F1F5F9;
+      --muted: rgba(241,245,249,0.45);
+      --radius: 14px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      width: 380px; min-height: 520px; max-height: 620px;
+      background: var(--bg); color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden; overflow-y: auto;
+    }
+    body::-webkit-scrollbar { width: 4px; }
+    body::-webkit-scrollbar-track { background: transparent; }
+    body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    /* HEADER */
+    .header {
+      padding: 14px 16px 10px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,107,107,0.06) 0%, transparent 100%);
+    }
+    .logo { display: flex; align-items: center; gap: 9px; }
+    .logo-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 17px; box-shadow: 0 4px 14px rgba(255,107,107,0.35);
+    }
+    .logo-name { font-size: 15px; font-weight: 800; letter-spacing: -0.3px; }
+    .logo-name span { color: var(--accent); }
+    .header-actions { display: flex; gap: 6px; }
+    .hbtn {
+      width: 30px; height: 30px; border: 1px solid var(--border);
+      background: var(--surface); border-radius: 9px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted); font-size: 13px; transition: all 0.18s;
+    }
+    .hbtn:hover { background: var(--surface2); color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+    /* TABS */
+    .tabs {
+      display: flex; gap: 3px; padding: 10px 14px 0;
+    }
+    .tab {
+      flex: 1; padding: 8px 4px; border: 1px solid transparent;
+      background: transparent; border-radius: 10px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      color: var(--muted); transition: all 0.18s;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .tab .ticon { font-size: 17px; }
+    .tab .tlabel { font-size: 10px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; }
+    .tab.active {
+      background: rgba(255,107,107,0.12); color: var(--accent);
+      border-color: rgba(255,107,107,0.25);
+    }
+    .tab:hover:not(.active) { background: var(--surface); color: var(--text); }
+
+    /* PANEL */
+    .panels { padding: 12px 14px 10px; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* SECTION */
+    .section-label {
+      font-size: 10px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;
+    }
+
+    /* SOURCE BUTTONS */
+    .source-row { display: flex; gap: 6px; margin-bottom: 12px; }
+    .src-btn {
+      flex: 1; padding: 9px 6px; border: 1px solid var(--border);
+      background: var(--surface); border-radius: 10px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      color: var(--muted); transition: all 0.18s;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .src-btn .sicon { font-size: 20px; }
+    .src-btn .slabel { font-size: 10px; font-weight: 600; }
+    .src-btn.active {
+      background: rgba(255,107,107,0.1); color: var(--accent);
+      border-color: rgba(255,107,107,0.35);
+    }
+    .src-btn:hover:not(.active) { background: var(--surface2); color: var(--text); }
+
+    /* OPTIONS GRID */
+    .opts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+    .opt-card {
+      padding: 9px 10px; border: 1px solid var(--border);
+      background: var(--surface); border-radius: 10px; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: all 0.18s;
+    }
+    .opt-card.active { background: rgba(255,107,107,0.08); border-color: rgba(255,107,107,0.25); }
+    .opt-left { display: flex; align-items: center; gap: 7px; }
+    .opt-icon { font-size: 15px; }
+    .opt-name { font-size: 11px; font-weight: 600; color: var(--text); }
+    .toggle {
+      width: 30px; height: 16px; background: rgba(255,255,255,0.1);
+      border-radius: 100px; position: relative; transition: background 0.2s;
+    }
+    .toggle::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 12px; height: 12px; background: white; border-radius: 50%;
+      transition: transform 0.2s; opacity: 0.5;
+    }
+    .opt-card.active .toggle { background: var(--accent); }
+    .opt-card.active .toggle::after { transform: translateX(14px); opacity: 1; }
+
+    /* TIMER */
+    .timer-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 12px; margin-bottom: 12px;
+    }
+    .timer-opts { display: flex; gap: 5px; align-items: center; }
+    .topt {
+      flex: 1; padding: 6px 4px; border: 1px solid var(--border);
+      background: transparent; border-radius: 8px; cursor: pointer;
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      font-family: 'Space Grotesk', sans-serif; text-align: center; transition: all 0.15s;
+    }
+    .topt.active { background: rgba(255,107,107,0.15); border-color: rgba(255,107,107,0.4); color: var(--accent); }
+    .topt:hover:not(.active) { background: var(--surface2); color: var(--text); }
+    .t-input {
+      flex: 1.4; padding: 5px 8px; background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: 'Space Grotesk', sans-serif; font-size: 11px; outline: none;
+    }
+    .t-input:focus { border-color: rgba(255,107,107,0.4); }
+    .t-input::placeholder { color: var(--muted); }
+
+    /* RECORD BUTTON */
+    .rec-wrap { position: relative; margin-bottom: 10px; }
+    .rec-btn {
+      width: 100%; padding: 13px; border: none; cursor: pointer;
+      border-radius: 12px; font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px; font-weight: 800; letter-spacing: 0.3px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white; display: flex; align-items: center; justify-content: center; gap: 9px;
+      transition: all 0.2s; position: relative; overflow: hidden;
+      box-shadow: 0 4px 20px rgba(255,107,107,0.3);
+    }
+    .rec-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(255,107,107,0.45); }
+    .rec-btn:active { transform: translateY(0); }
+    .rec-btn.recording {
+      background: linear-gradient(135deg, #2d1a1a, #3d1f1f);
+      box-shadow: 0 4px 20px rgba(255,107,107,0.2);
+      border: 1px solid rgba(255,107,107,0.3);
+    }
+    .rec-btn::after {
+      content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      animation: shimmer 2.5s infinite;
+    }
+    @keyframes shimmer { to { left: 100%; } }
+    .rdot { width: 10px; height: 10px; background: white; border-radius: 50%; }
+    .rdot.pulsing { animation: rdPulse 1s ease-in-out infinite; }
+    @keyframes rdPulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    /* RECORDING BAR */
+    .rec-bar {
+      display: none; padding: 8px 12px; background: rgba(255,107,107,0.1);
+      border: 1px solid rgba(255,107,107,0.2); border-radius: 10px;
+      margin-bottom: 10px; align-items: center; justify-content: space-between;
+    }
+    .rec-bar.show { display: flex; }
+    .rec-time { font-size: 16px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .rec-actions { display: flex; gap: 6px; }
+    .rsbtn {
+      padding: 5px 10px; border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.07); border-radius: 7px; cursor: pointer;
+      font-size: 11px; font-weight: 700; color: var(--text);
+      font-family: 'Space Grotesk', sans-serif; transition: all 0.15s;
+    }
+    .rsbtn:hover { background: rgba(255,255,255,0.12); }
+    .rsbtn.stop { border-color: rgba(255,107,107,0.3); color: var(--accent); }
+
+    /* COUNTDOWN OVERLAY */
+    .cd-overlay {
+      display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(9,14,26,0.95); border-radius: 12px;
+      flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+      z-index: 10;
+    }
+    .cd-overlay.show { display: flex; }
+    .cd-num {
+      font-size: 52px; font-weight: 900; color: var(--accent);
+      animation: cdPulse 1s ease-in-out;
+    }
+    .cd-lbl { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .cd-cancel {
+      margin-top: 4px; padding: 4px 14px; border: 1px solid rgba(255,255,255,0.15);
+      background: transparent; border-radius: 100px; cursor: pointer;
+      font-size: 11px; color: var(--muted); font-family: 'Space Grotesk', sans-serif;
+      transition: all 0.15s;
+    }
+    .cd-cancel:hover { color: var(--text); background: rgba(255,255,255,0.08); }
+    @keyframes cdPulse {
+      0% { transform: scale(1.4); opacity: 0; }
+      50% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(0.95); }
+    }
+
+    /* SCREENSHOT */
+    .cap-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+    .cap-card {
+      padding: 12px 8px; border: 1px solid var(--border);
+      background: var(--surface); border-radius: 12px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      transition: all 0.18s;
+    }
+    .cap-card.active { background: rgba(139,92,246,0.1); border-color: rgba(139,92,246,0.35); }
+    .cap-card:hover:not(.active) { background: var(--surface2); }
+    .cap-icon { font-size: 24px; }
+    .cap-name { font-size: 10px; font-weight: 700; color: var(--muted); text-align: center; }
+    .cap-card.active .cap-name { color: var(--purple); }
+    .ss-btn {
+      width: 100%; padding: 12px; border: none; cursor: pointer; border-radius: 12px;
+      font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 800;
+      background: linear-gradient(135deg, var(--purple), #6D28D9); color: white;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.2s; box-shadow: 0 4px 20px rgba(139,92,246,0.3);
+    }
+    .ss-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(139,92,246,0.45); }
+
+    /* LIBRARY PANEL */
+    .lib-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .lib-search {
+      flex: 1; padding: 7px 10px 7px 32px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 9px;
+      color: var(--text); font-family: 'Space Grotesk', sans-serif; font-size: 12px;
+      outline: none; position: relative;
+    }
+    .search-wrap { position: relative; flex: 1; }
+    .search-wrap::before {
+      content: '🔍'; position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+      font-size: 12px; pointer-events: none;
+    }
+    .lib-search:focus { border-color: rgba(255,107,107,0.4); }
+    .view-btns { display: flex; gap: 4px; margin-left: 8px; }
+    .vbtn {
+      width: 28px; height: 28px; border: 1px solid var(--border);
+      background: var(--surface); border-radius: 7px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: var(--muted); transition: all 0.15s;
+    }
+    .vbtn.active, .vbtn:hover { background: var(--surface2); color: var(--text); }
+    .lib-items { max-height: 280px; overflow-y: auto; }
+    .lib-items::-webkit-scrollbar { width: 3px; }
+    .lib-items::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+    .lib-item {
+      display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; margin-bottom: 6px; cursor: pointer; transition: all 0.15s;
+    }
+    .lib-item:hover { background: var(--surface2); border-color: rgba(255,255,255,0.12); }
+    .lib-thumb {
+      width: 44px; height: 32px; border-radius: 6px;
+      background: linear-gradient(135deg, var(--surface2), #1e2d45);
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+      flex-shrink: 0; overflow: hidden;
+    }
+    .lib-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
+    .lib-meta { flex: 1; overflow: hidden; }
+    .lib-title { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lib-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .lib-actions { display: flex; gap: 4px; }
+    .lib-act {
+      width: 24px; height: 24px; border: none; background: transparent;
+      cursor: pointer; font-size: 13px; border-radius: 5px; transition: background 0.15s;
+    }
+    .lib-act:hover { background: rgba(255,255,255,0.08); }
+    .lib-empty {
+      text-align: center; padding: 30px 20px; color: var(--muted);
+    }
+    .lib-empty .le-icon { font-size: 36px; margin-bottom: 8px; }
+    .lib-empty .le-text { font-size: 13px; font-weight: 600; }
+    .lib-empty .le-sub { font-size: 11px; margin-top: 4px; }
+
+    /* AI PANEL */
+    .ai-hero {
+      background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(20,184,166,0.1));
+      border: 1px solid rgba(139,92,246,0.2); border-radius: 12px;
+      padding: 14px 14px; margin-bottom: 12px; text-align: center;
+    }
+    .ai-icon { font-size: 32px; margin-bottom: 6px; }
+    .ai-title { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+    .ai-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+    .ai-prompts { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px; }
+    .ai-prompt {
+      padding: 8px 10px; border: 1px solid rgba(139,92,246,0.2);
+      background: rgba(139,92,246,0.07); border-radius: 9px; cursor: pointer;
+      font-size: 10px; font-weight: 600; color: rgba(139,92,246,0.9);
+      font-family: 'Space Grotesk', sans-serif; text-align: left;
+      transition: all 0.15s; line-height: 1.4;
+    }
+    .ai-prompt:hover { background: rgba(139,92,246,0.15); border-color: rgba(139,92,246,0.35); }
+    .ai-open-btn {
+      width: 100%; padding: 11px; border: none; cursor: pointer; border-radius: 12px;
+      font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700;
+      background: linear-gradient(135deg, var(--purple), var(--teal)); color: white;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      transition: all 0.2s; box-shadow: 0 4px 16px rgba(139,92,246,0.3);
+    }
+    .ai-open-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(139,92,246,0.45); }
+
+    /* FOOTER */
+    .footer {
+      display: flex; padding: 8px 14px 10px; gap: 5px;
+      border-top: 1px solid var(--border);
+    }
+    .fbtn {
+      flex: 1; padding: 7px 4px; border: none;
+      background: transparent; cursor: pointer; border-radius: 8px;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      color: var(--muted); font-family: 'Space Grotesk', sans-serif; transition: all 0.15s;
+    }
+    .fbtn:hover { background: var(--surface); color: var(--text); }
+    .fbtn .ficon { font-size: 15px; }
+    .fbtn .flabel { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+
+    /* UTILITY */
+    .divider { height: 1px; background: var(--border); margin: 10px 0; }
+    .badge {
+      display: inline-block; padding: 2px 7px;
+      background: rgba(255,107,107,0.15); color: var(--accent);
+      font-size: 9px; font-weight: 800; border-radius: 100px; letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">🎬</div>
+    <div>
+      <div class="logo-name">Snap<span>Record</span></div>
+    </div>
+    <span class="badge">PRO</span>
+  </div>
+  <div class="header-actions">
+    <button class="hbtn" id="btn-ai" title="AI Assistant">✨</button>
+    <button class="hbtn" id="btn-settings" title="Settings">⚙️</button>
+    <button class="hbtn" id="btn-dash" title="Dashboard">🗂️</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" data-tab="record">
+    <span class="ticon">⏺</span><span class="tlabel">Record</span>
+  </button>
+  <button class="tab" data-tab="screenshot">
+    <span class="ticon">📸</span><span class="tlabel">Screenshot</span>
+  </button>
+  <button class="tab" data-tab="library">
+    <span class="ticon">🗂️</span><span class="tlabel">Library</span>
+  </button>
+  <button class="tab" data-tab="ai">
+    <span class="ticon">✨</span><span class="tlabel">AI</span>
+  </button>
+</div>
+
+<!-- PANELS -->
+<div class="panels">
+
+  <!-- RECORD PANEL -->
+  <div class="panel active" id="panel-record">
+    <div class="section-label">Capture Source</div>
+    <div class="source-row">
+      <button class="src-btn active" data-source="screen">
+        <span class="sicon">🖥️</span><span class="slabel">Screen</span>
+      </button>
+      <button class="src-btn" data-source="tab">
+        <span class="sicon">🗂️</span><span class="slabel">Tab</span>
+      </button>
+      <button class="src-btn" data-source="webcam">
+        <span class="sicon">📷</span><span class="slabel">Webcam</span>
+      </button>
+      <button class="src-btn" data-source="both">
+        <span class="sicon">🎭</span><span class="slabel">Both</span>
+      </button>
+    </div>
+
+    <div class="section-label">Options</div>
+    <div class="opts-grid">
+      <div class="opt-card active" data-opt="mic">
+        <div class="opt-left"><span class="opt-icon">🎙️</span><span class="opt-name">Microphone</span></div>
+        <div class="toggle"></div>
+      </div>
+      <div class="opt-card active" data-opt="sys">
+        <div class="opt-left"><span class="opt-icon">🔊</span><span class="opt-name">System Audio</span></div>
+        <div class="toggle"></div>
+      </div>
+      <div class="opt-card" data-opt="cam">
+        <div class="opt-left"><span class="opt-icon">📹</span><span class="opt-name">Camera Overlay</span></div>
+        <div class="toggle"></div>
+      </div>
+      <div class="opt-card active" data-opt="hd">
+        <div class="opt-left"><span class="opt-icon">✨</span><span class="opt-name">HD Quality</span></div>
+        <div class="toggle"></div>
+      </div>
+    </div>
+
+    <div class="section-label">Countdown Timer</div>
+    <div class="timer-box">
+      <div class="timer-opts">
+        <button class="topt active" data-delay="0">Off</button>
+        <button class="topt" data-delay="3">3s</button>
+        <button class="topt" data-delay="10">10s</button>
+        <button class="topt" data-delay="20">20s</button>
+        <input class="t-input" id="custom-delay" type="number" min="1" max="60" placeholder="Custom">
+      </div>
+    </div>
+
+    <!-- RECORDING BAR -->
+    <div class="rec-bar" id="rec-bar">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="rdot pulsing" style="background:var(--accent);"></div>
+        <span class="rec-time" id="rec-time">00:00</span>
+      </div>
+      <div class="rec-actions">
+        <button class="rsbtn" id="btn-pause">⏸ Pause</button>
+        <button class="rsbtn stop" id="btn-stop">⏹ Stop</button>
+      </div>
+    </div>
+
+    <!-- RECORD BUTTON -->
+    <div class="rec-wrap">
+      <button class="rec-btn" id="rec-btn">
+        <div class="rdot" id="rdot"></div>
+        <span id="rec-label">Start Recording</span>
+      </button>
+      <div class="cd-overlay" id="cd-overlay">
+        <div class="cd-num" id="cd-num">3</div>
+        <div class="cd-lbl">Recording starts in...</div>
+        <button class="cd-cancel" id="cd-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREENSHOT PANEL -->
+  <div class="panel" id="panel-screenshot">
+    <div class="section-label">Capture Type</div>
+    <div class="cap-grid">
+      <div class="cap-card active" data-capture="visible">
+        <span class="cap-icon">🖥️</span><span class="cap-name">Visible Area</span>
+      </div>
+      <div class="cap-card" data-capture="region">
+        <span class="cap-icon">✂️</span><span class="cap-name">Select Region</span>
+      </div>
+      <div class="cap-card" data-capture="fullpage">
+        <span class="cap-icon">📄</span><span class="cap-name">Full Page</span>
+      </div>
+    </div>
+
+    <div class="section-label">Delay Timer</div>
+    <div class="timer-box" style="margin-bottom:12px;">
+      <div class="timer-opts">
+        <button class="topt active" data-ss-delay="0">Off</button>
+        <button class="topt" data-ss-delay="3">3s</button>
+        <button class="topt" data-ss-delay="10">10s</button>
+        <button class="topt" data-ss-delay="20">20s</button>
+        <input class="t-input" id="ss-custom-delay" type="number" min="1" max="60" placeholder="Custom">
+      </div>
+    </div>
+
+    <button class="ss-btn" id="ss-btn">
+      <span>📸</span> Capture Screenshot
+    </button>
+
+    <div class="divider"></div>
+    <div class="section-label">Quick Actions</div>
+    <div style="display:flex;gap:6px;">
+      <button class="src-btn" id="btn-annotate" style="flex:1;padding:9px;">
+        <span class="sicon">✏️</span><span class="slabel">Annotate</span>
+      </button>
+      <button class="src-btn" id="btn-clipboard" style="flex:1;padding:9px;">
+        <span class="sicon">📋</span><span class="slabel">Clipboard</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- LIBRARY PANEL -->
+  <div class="panel" id="panel-library">
+    <div class="lib-header">
+      <div class="search-wrap" style="flex:1;">
+        <input class="lib-search" id="lib-search" placeholder="Search recordings...">
+      </div>
+      <div class="view-btns">
+        <button class="vbtn active" id="view-list" title="List">☰</button>
+        <button class="vbtn" id="view-grid" title="Grid">⊞</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:5px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;">
+      <button class="topt active" data-filter="all" style="white-space:nowrap;flex:none;padding:5px 10px;">All</button>
+      <button class="topt" data-filter="recording" style="white-space:nowrap;flex:none;padding:5px 10px;">🎬 Videos</button>
+      <button class="topt" data-filter="screenshot" style="white-space:nowrap;flex:none;padding:5px 10px;">📸 Screenshots</button>
+    </div>
+    <div class="lib-items" id="lib-items">
+      <div class="lib-empty">
+        <div class="le-icon">🎬</div>
+        <div class="le-text">No recordings yet</div>
+        <div class="le-sub">Start recording or take a screenshot!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI PANEL -->
+  <div class="panel" id="panel-ai">
+    <div class="ai-hero">
+      <div class="ai-icon">🤖</div>
+      <div class="ai-title">AI Recording Assistant</div>
+      <div class="ai-desc">Get smart help with recording, editing, and sharing your content</div>
+    </div>
+    <div class="section-label">Quick Prompts</div>
+    <div class="ai-prompts">
+      <button class="ai-prompt" data-prompt="How do I trim this video?">✂️ How to trim video?</button>
+      <button class="ai-prompt" data-prompt="Add captions to my recording">💬 Add captions</button>
+      <button class="ai-prompt" data-prompt="Best way to highlight content">🎯 Highlight tips</button>
+      <button class="ai-prompt" data-prompt="How do I share my recording?">🔗 Sharing options</button>
+      <button class="ai-prompt" data-prompt="How to blur sensitive info?">🔒 Blur/redact</button>
+      <button class="ai-prompt" data-prompt="Recording quality settings">⚙️ Quality settings</button>
+    </div>
+    <button class="ai-open-btn" id="btn-open-ai">
+      ✨ Open AI Assistant Sidebar
+    </button>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <button class="fbtn" id="fbtn-dash"><span class="ficon">🏠</span><span class="flabel">Dashboard</span></button>
+  <button class="fbtn" id="fbtn-editor"><span class="ficon">🎬</span><span class="flabel">Editor</span></button>
+  <button class="fbtn" id="fbtn-settings"><span class="ficon">⚙️</span><span class="flabel">Settings</span></button>
+  <button class="fbtn" id="fbtn-help"><span class="ficon">❓</span><span class="flabel">Help</span></button>
+</div>
+
+<script src="../js/popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SnapRecord Pro - Screenshot Editor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090E1A; --surface: #111827; --surface2: #1A2236;
+      --border: rgba(255,255,255,0.08); --accent: #FF6B6B; --accent2: #FF8E53;
+      --purple: #8B5CF6; --teal: #14B8A6; --text: #F1F5F9; --muted: rgba(241,245,249,0.45);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg); color: var(--text); display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* TOOLBAR */
+    .toolbar {
+      display: flex; align-items: center; gap: 6px; padding: 10px 16px;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      flex-shrink: 0; flex-wrap: nowrap; overflow-x: auto;
+    }
+    .tb-logo { font-size: 13px; font-weight: 800; color: var(--accent); white-space: nowrap; margin-right: 8px; }
+    .tb-sep { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
+    .tb-group { display: flex; gap: 3px; }
+    .tool-btn {
+      width: 34px; height: 34px; border: 1px solid transparent;
+      background: transparent; border-radius: 8px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: var(--muted); transition: all 0.15s; flex-shrink: 0;
+    }
+    .tool-btn:hover { background: var(--surface2); color: var(--text); }
+    .tool-btn.active { background: rgba(255,107,107,0.15); border-color: rgba(255,107,107,0.3); color: var(--accent); }
+    .color-swatch {
+      width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+      border: 2px solid rgba(255,255,255,0.2); flex-shrink: 0; transition: transform 0.15s;
+    }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.active { border-color: white; }
+    .size-slider {
+      width: 80px; accent-color: var(--accent); flex-shrink: 0;
+    }
+    .tb-spacer { flex: 1; }
+    .action-btn {
+      padding: 7px 14px; border: none; border-radius: 8px; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 700;
+      transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+    }
+    .btn-download { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
+    .btn-copy { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-share { background: linear-gradient(135deg, var(--purple), var(--teal)); color: white; }
+
+    /* CANVAS AREA */
+    .canvas-area {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      overflow: auto; background: #060B15; position: relative; padding: 20px;
+    }
+    .canvas-wrap { position: relative; display: inline-block; }
+    #main-canvas { display: block; max-width: 100%; cursor: crosshair; border-radius: 4px; box-shadow: 0 8px 40px rgba(0,0,0,0.6); }
+    #draw-canvas { position: absolute; top: 0; left: 0; cursor: crosshair; }
+
+    /* STATUS BAR */
+    .statusbar {
+      padding: 6px 16px; background: var(--surface); border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 11px; color: var(--muted); flex-shrink: 0;
+    }
+
+    /* COLOR PICKER POPUP */
+    .color-popup {
+      position: fixed; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px; z-index: 1000; display: none;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+    .color-popup.show { display: block; }
+    .cp-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+    .cp-swatches { display: grid; grid-template-columns: repeat(8, 24px); gap: 4px; }
+    .cp-swatch {
+      width: 24px; height: 24px; border-radius: 5px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.15s;
+    }
+    .cp-swatch:hover { transform: scale(1.2); }
+    .cp-custom { margin-top: 8px; }
+    .cp-custom input[type=color] { width: 100%; height: 28px; border: none; border-radius: 5px; cursor: pointer; }
+
+    /* TEXT INPUT OVERLAY */
+    .text-input-overlay {
+      position: absolute; background: transparent;
+      border: 2px dashed rgba(255,107,107,0.6); padding: 4px;
+      font-family: 'Space Grotesk', sans-serif; font-size: 18px;
+      color: var(--accent); outline: none; min-width: 100px; resize: both;
+      display: none;
+    }
+
+    /* EMOJI PICKER */
+    .emoji-popup {
+      position: fixed; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px; z-index: 1000; display: none;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5); width: 220px;
+    }
+    .emoji-popup.show { display: block; }
+    .emoji-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .emoji-btn {
+      width: 28px; height: 28px; border: none; background: transparent; cursor: pointer;
+      font-size: 18px; border-radius: 5px; transition: background 0.15s;
+    }
+    .emoji-btn:hover { background: var(--surface2); }
+
+    /* PLACEHOLDER */
+    .placeholder-msg {
+      text-align: center; color: var(--muted); padding: 40px;
+    }
+    .placeholder-msg .pi { font-size: 48px; margin-bottom: 12px; }
+    .placeholder-msg p { font-size: 14px; }
+    .drop-zone {
+      border: 2px dashed rgba(255,107,107,0.3); border-radius: 16px;
+      padding: 40px; text-align: center; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent); background: rgba(255,107,107,0.05); }
+    .drop-zone p { font-size: 13px; color: var(--muted); margin-top: 8px; }
+    .upload-btn-label {
+      display: inline-block; margin-top: 12px; padding: 8px 20px;
+      background: rgba(255,107,107,0.15); border-radius: 8px; cursor: pointer;
+      font-size: 12px; font-weight: 700; color: var(--accent);
+      border: 1px solid rgba(255,107,107,0.3); transition: all 0.15s;
+    }
+    .upload-btn-label:hover { background: rgba(255,107,107,0.25); }
+  </style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <span class="tb-logo">📸 SnapRecord</span>
+  <div class="tb-sep"></div>
+
+  <!-- DRAWING TOOLS -->
+  <div class="tb-group">
+    <button class="tool-btn active" data-tool="pen" title="Pen">✏️</button>
+    <button class="tool-btn" data-tool="highlighter" title="Highlighter">🖊️</button>
+    <button class="tool-btn" data-tool="arrow" title="Arrow">➡️</button>
+    <button class="tool-btn" data-tool="rect" title="Rectangle">⬜</button>
+    <button class="tool-btn" data-tool="circle" title="Circle">⭕</button>
+    <button class="tool-btn" data-tool="line" title="Line">➖</button>
+    <button class="tool-btn" data-tool="text" title="Text">T</button>
+    <button class="tool-btn" data-tool="blur" title="Blur/Redact">🔒</button>
+    <button class="tool-btn" data-tool="emoji" title="Emoji">😀</button>
+  </div>
+  <div class="tb-sep"></div>
+
+  <!-- COLORS -->
+  <div class="tb-group" id="color-swatches">
+    <div class="color-swatch active" style="background:#FF6B6B;" data-color="#FF6B6B"></div>
+    <div class="color-swatch" style="background:#60A5FA;" data-color="#60A5FA"></div>
+    <div class="color-swatch" style="background:#34D399;" data-color="#34D399"></div>
+    <div class="color-swatch" style="background:#FBBF24;" data-color="#FBBF24"></div>
+    <div class="color-swatch" style="background:#A78BFA;" data-color="#A78BFA"></div>
+    <div class="color-swatch" style="background:#F9FAFB;" data-color="#F9FAFB"></div>
+  </div>
+  <button class="tool-btn" id="btn-color-picker" title="More colors">🎨</button>
+  <div class="tb-sep"></div>
+
+  <!-- SIZE -->
+  <input type="range" class="size-slider" id="stroke-size" min="1" max="30" value="3">
+  <div class="tb-sep"></div>
+
+  <!-- UNDO/REDO -->
+  <div class="tb-group">
+    <button class="tool-btn" id="btn-undo" title="Undo (Ctrl+Z)">↩️</button>
+    <button class="tool-btn" id="btn-redo" title="Redo (Ctrl+Y)">↪️</button>
+    <button class="tool-btn" id="btn-clear" title="Clear All">🗑️</button>
+  </div>
+  <div class="tb-spacer"></div>
+
+  <!-- ACTIONS -->
+  <button class="action-btn btn-copy" id="btn-copy">📋 Copy</button>
+  <button class="action-btn btn-download" id="btn-download">⬇️ Download</button>
+  <button class="action-btn btn-share" id="btn-share">🔗 Share</button>
+</div>
+
+<!-- CANVAS AREA -->
+<div class="canvas-area" id="canvas-area">
+  <div id="canvas-placeholder" class="placeholder-msg">
+    <div class="drop-zone" id="drop-zone">
+      <div class="pi">📸</div>
+      <p>Drop an image here or</p>
+      <label class="upload-btn-label" for="file-input">📂 Open Image</label>
+      <input type="file" id="file-input" accept="image/*" style="display:none;">
+    </div>
+  </div>
+  <div class="canvas-wrap" id="canvas-wrap" style="display:none;">
+    <canvas id="main-canvas"></canvas>
+    <canvas id="draw-canvas"></canvas>
+    <textarea class="text-input-overlay" id="text-input"></textarea>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <span id="status-left">Ready</span>
+  <span id="status-dims"></span>
+  <span id="status-tool">Tool: Pen | Color: #FF6B6B | Size: 3px</span>
+</div>
+
+<!-- COLOR PICKER POPUP -->
+<div class="color-popup" id="color-popup">
+  <div class="cp-title">Color Palette</div>
+  <div class="cp-swatches" id="cp-swatches"></div>
+  <div class="cp-custom">
+    <input type="color" id="custom-color" value="#FF6B6B" title="Custom color">
+  </div>
+</div>
+
+<!-- EMOJI PICKER -->
+<div class="emoji-popup" id="emoji-popup">
+  <div class="emoji-grid" id="emoji-grid"></div>
+</div>
+
+<script src="../js/screenshot.js"></script>
+</body>
+</html>
